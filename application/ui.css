@@ -1,0 +1,108 @@
+/* Shared design tokens and components for the extension's own pages
+   (popup, manager, request queue, welcome). Content-script styles live in
+   content.css and stay namespaced with .nuf-*, because they run on the site. */
+
+:root {
+  --canvas: #f4f6f8;
+  --surface: #ffffff;
+  --surface-sunk: #f7f9fb;
+  --line: #e2e8f0;
+  --line-soft: #edf2f7;
+  --text: #1a202c;
+  --muted: #718096;
+  --faint: #a0aec0;
+  --header: #1a202c;
+  --header-text: #ffffff;
+  --header-muted: #a0aec0;
+  --header-control: #2d3748;
+  --header-control-line: #4a5568;
+  --focus: #3182ce;
+  --primary: #2b6cb0;
+  --primary-hover: #2c5282;
+  --danger: #c53030;
+  --danger-soft: #fff5f5;
+  --ok: #276749;
+  --ok-soft: #c6f6d5;
+
+  --read: #065f46;  --read-soft: #d1fae5;  --read-line: #6ee7b7;
+  --nf: #92400e;    --nf-soft: #fef3c7;    --nf-line: #fcd34d;
+  --ni: #991b1b;    --ni-soft: #fee2e2;    --ni-line: #fca5a5;
+  --tr: #581c87;    --tr-soft: #f3e8ff;    --tr-line: #d8b4fe;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #12151c;
+    --surface: #1b1f29;
+    --surface-sunk: #171a22;
+    --line: #2d3443;
+    --line-soft: #242a36;
+    --text: #e2e8f0;
+    --muted: #a0aec0;
+    --faint: #718096;
+    --header: #0d1016;
+    --focus: #63b3ed;
+    --primary: #3182ce;
+    --primary-hover: #2b6cb0;
+    --danger: #fc8181;
+    --danger-soft: #2d1515;
+    --ok: #9ae6b4;
+    --ok-soft: #1a3d2b;
+
+    --read: #6ee7b7;  --read-soft: #064e3b;  --read-line: #065f46;
+    --nf: #fcd34d;    --nf-soft: #451a03;    --nf-line: #92400e;
+    --ni: #fca5a5;    --ni-soft: #450a0a;    --ni-line: #991b1b;
+    --tr: #d8b4fe;    --tr-soft: #2e1065;    --tr-line: #6b21a8;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: Arial, sans-serif; font-size: 13px; line-height: 1.4;
+  background: var(--canvas); color: var(--text);
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; opacity: 0.45; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+a { color: inherit; }
+
+/* Dark page header shared by every extension page */
+.page-header {
+  background: var(--header); color: var(--header-text);
+  padding: 12px 20px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.brand { font-size: 15px; font-weight: 700; white-space: nowrap; }
+.brand span { color: #f6e05e; }
+.header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.header-actions .note { font-size: 11px; color: var(--header-muted); margin-right: 4px; }
+.header-btn,
+.header-actions select {
+  font-size: 12px; padding: 5px 12px; border-radius: 4px;
+  border: 1px solid var(--header-control-line); background: var(--header-control); color: #fff;
+}
+.header-btn:hover:not(:disabled) { background: var(--header-control-line); }
+.header-btn.primary { background: var(--primary); border-color: var(--primary); }
+.header-btn.primary:hover { background: var(--primary-hover); }
+
+/* Bucket colours as data attributes, for counts, badges and dots */
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+[data-bucket="read"] { --accent: var(--read); --accent-soft: var(--read-soft); --accent-line: var(--read-line); }
+[data-bucket="nf"]   { --accent: var(--nf);   --accent-soft: var(--nf-soft);   --accent-line: var(--nf-line); }
+[data-bucket="ni"]   { --accent: var(--ni);   --accent-soft: var(--ni-soft);   --accent-line: var(--ni-line); }
+[data-bucket="tr"]   { --accent: var(--tr);   --accent-soft: var(--tr-soft);   --accent-line: var(--tr-line); }
+
+/* Plain buttons on light surfaces */
+.btn {
+  font-size: 12px; padding: 5px 12px; border-radius: 4px;
+  border: 1px solid var(--line); background: var(--surface);
+}
+.btn:hover:not(:disabled) { background: var(--line-soft); }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+.btn.primary:hover:not(:disabled) { background: var(--primary-hover); }
+.btn.danger { color: var(--danger); }
+.btn.danger:hover:not(:disabled) { background: var(--danger-soft); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

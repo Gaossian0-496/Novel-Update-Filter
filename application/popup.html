@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Novel Updates Filter</title>
+<link rel="stylesheet" href="ui.css">
+<style>
+  body { width: 500px; background: var(--surface); }
+
+  /* Header: name and bucket counts */
+  .header {
+    background: var(--header); color: var(--header-text);
+    padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .header .title { font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .header .title span { color: #f6e05e; }
+  .badge { display: flex; gap: 12px; font-size: 11px; color: var(--header-muted); flex-wrap: wrap; justify-content: flex-end; }
+  .badge > span { white-space: nowrap; }
+  .badge > span::before {
+    content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    margin-right: 5px; vertical-align: 1px;
+  }
+  .badge .rc::before  { background: #6ee7b7; }
+  .badge .nfc::before { background: #fcd34d; }
+  .badge .nc::before  { background: #fca5a5; }
+  .badge .trc::before { background: #d8b4fe; }
+
+  /* Collapsible sections */
+  details.filters { border-bottom: 1px solid var(--line); }
+  details.filters summary {
+    padding: 9px 14px;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; list-style: none;
+    display: flex; align-items: center; justify-content: space-between;
+    user-select: none;
+  }
+  details.filters summary:hover { background: var(--surface-sunk); }
+  details.filters summary::-webkit-details-marker { display: none; }
+  details.filters summary::after { content: '▾'; font-size: 11px; color: var(--faint); transition: transform 0.15s; }
+  details.filters[open] summary::after { transform: rotate(180deg); }
+  .filters-body { padding: 0 14px 12px; }
+  .filter-group { margin-top: 10px; }
+  .filter-group:first-child { margin-top: 2px; }
+  .filter-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .lang-chips, .genre-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .lang-chip, .genre-chip {
+    font-size: 11px; padding: 3px 10px; border-radius: 10px;
+    border: 1px solid var(--line); cursor: pointer; user-select: none;
+    background: var(--surface-sunk); color: var(--text);
+  }
+  .lang-chip:hover, .genre-chip:hover { border-color: var(--faint); }
+  .lang-chip.active, .genre-chip.active {
+    background: var(--ni-soft); border-color: var(--ni-line); color: var(--ni);
+    text-decoration: line-through;
+  }
+
+  /* Options */
+  .options-group { padding: 2px 0 6px; }
+  .options-group + .options-group { border-top: 1px solid var(--line-soft); }
+  .options-group-label { font-size: 11px; font-weight: 700; color: var(--muted); padding: 8px 14px 2px; }
+  .option-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 5px 14px; font-size: 13px;
+  }
+  .option-row select {
+    font-size: 12px; font-weight: 700;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+    padding: 2px 5px; cursor: pointer;
+  }
+
+  /* Toggle switch */
+  .nuf-toggle { position: relative; display: inline-block; width: 32px; height: 18px; flex-shrink: 0; }
+  .nuf-toggle input { opacity: 0; width: 0; height: 0; }
+  .nuf-toggle-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: var(--line); border-radius: 18px; transition: background 0.15s;
+  }
+  .nuf-toggle-slider::before {
+    content: ''; position: absolute; width: 14px; height: 14px; left: 2px; top: 2px;
+    background: #fff; border-radius: 50%; transition: transform 0.15s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  .nuf-toggle input:checked + .nuf-toggle-slider { background: var(--read); }
+  .nuf-toggle input:checked + .nuf-toggle-slider::before { transform: translateX(14px); }
+  .nuf-toggle input:focus-visible + .nuf-toggle-slider { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  .nuf-tag-progress { padding: 2px 14px 6px; }
+  .nuf-tag-progress-bar { height: 4px; background: var(--line-soft); border-radius: 2px; overflow: hidden; margin-bottom: 3px; }
+  .nuf-tag-progress-fill { height: 100%; background: var(--read); border-radius: 2px; width: 0%; transition: width 0.3s ease; }
+  .nuf-tag-progress-label { font-size: 11px; color: var(--muted); }
+
+  /* Footer: one primary action, then secondary tools */
+  .footer { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); background: var(--surface-sunk); }
+  .manage-btn {
+    width: 100%; padding: 8px 14px; font-size: 13px; font-weight: 700;
+    background: var(--primary); color: #fff; border: none; border-radius: 5px;
+  }
+  .manage-btn:hover { background: var(--primary-hover); }
+  .bulk { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .bulk-btn {
+    padding: 5px 4px; font-size: 12px; border-radius: 4px;
+    border: 1px solid var(--line); background: var(--surface); white-space: nowrap;
+  }
+  .bulk-btn:hover:not(:disabled) { background: var(--line-soft); }
+  .reload-icon { display: inline-block; }
+  @keyframes nuf-spin { to { transform: rotate(360deg); } }
+  .bulk-btn.reload.reloading .reload-icon { animation: nuf-spin 0.7s linear infinite; }
+  .support-link { align-self: center; font-size: 11px; color: var(--muted); text-decoration: none; }
+  .support-link:hover { color: var(--primary); text-decoration: underline; }
+  .import-panel { display: none; }
+  .import-panel.open { display: block; }
+  .import-panel textarea {
+    width: 100%; height: 70px; font-size: 11px; font-family: monospace;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 5px; resize: none;
+  }
+  .import-actions { display: flex; gap: 6px; margin-top: 5px; }
+  .import-actions button { flex: 1; padding: 4px; font-size: 12px; border-radius: 4px; border: 1px solid var(--line); background: var(--surface); }
+  .import-actions .do-import { background: var(--primary); color: #fff; border-color: var(--primary); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="title">Novel Updates <span>Filter</span></span>
+  <span class="badge">
+    <span class="rc" id="read-count">Read 0</span>
+    <span class="nfc" id="nf-count">Not Finished 0</span>
+    <span class="nc" id="ni-count">Not Interested 0</span>
+    <span class="trc" id="tr-count">To Read 0</span>
+  </span>
+</div>
+
+<details class="filters">
+  <summary>Filters</summary>
+  <div class="filters-body">
+    <div class="filter-group">
+      <div class="filter-label">Exclude language</div>
+      <div class="lang-chips" id="lang-chips">
+        <span class="lang-chip" data-lang="chinese">Chinese</span>
+        <span class="lang-chip" data-lang="japanese">Japanese</span>
+        <span class="lang-chip" data-lang="korean">Korean</span>
+        <span class="lang-chip" data-lang="other">Other</span>
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">Exclude genres</div>
+      <div class="genre-chips" id="genre-chips">
+        <span class="genre-chip" data-tag="action" title="Fast-paced physical conflict, fights, and combat as the primary driver of the plot.">Action</span>
+        <span class="genre-chip" data-tag="adult" title="Contains explicit content intended for adult readers only.">Adult</span>
+        <span class="genre-chip" data-tag="adventure" title="Characters journey through new worlds or regions, encountering dangers and discoveries along the way.">Adventure</span>
+        <span class="genre-chip" data-tag="comedy" title="Humour is a central element; situations and characters are played for laughs.">Comedy</span>
+        <span class="genre-chip" data-tag="drama" title="Emphasis on emotional conflict, character relationships, and serious personal stakes.">Drama</span>
+        <span class="genre-chip" data-tag="ecchi" title="Suggestive or mildly sexual content without being explicitly pornographic.">Ecchi</span>
+        <span class="genre-chip" data-tag="fantasy" title="Set in imaginary worlds with magic, mythical creatures, and supernatural elements.">Fantasy</span>
+        <span class="genre-chip" data-tag="gender bender" title="A character changes or swaps gender, either physically or socially, as a plot element.">Gender Bender</span>
+        <span class="genre-chip" data-tag="harem" title="One protagonist is romantically pursued by or surrounded by multiple love interests, usually of the opposite gender.">Harem</span>
+        <span class="genre-chip" data-tag="historical" title="Set in a specific historical period with attention to the culture, politics, and events of that era.">Historical</span>
+        <span class="genre-chip" data-tag="horror" title="Designed to frighten; features dark themes, monsters, psychological dread, or the supernatural.">Horror</span>
+        <span class="genre-chip" data-tag="josei" title="Targeted at adult women; typically features more realistic romance and mature relationships than shoujo.">Josei</span>
+        <span class="genre-chip" data-tag="martial arts" title="Focuses on hand-to-hand combat disciplines, training, and tournaments.">Martial Arts</span>
+        <span class="genre-chip" data-tag="mature" title="Contains themes or content suitable only for mature readers, such as violence, dark themes, or moral ambiguity.">Mature</span>
+        <span class="genre-chip" data-tag="mecha" title="Features large mechanical robots or suits piloted by humans as a central element.">Mecha</span>
+        <span class="genre-chip" data-tag="mystery" title="Centres on solving a crime or uncovering a secret, with clues revealed gradually to the reader.">Mystery</span>
+        <span class="genre-chip" data-tag="psychological" title="Explores the inner workings of the mind; characters face mental challenges, manipulation, or moral dilemmas.">Psychological</span>
+        <span class="genre-chip" data-tag="romance" title="A love story is the primary focus, following the development of a romantic relationship.">Romance</span>
+        <span class="genre-chip" data-tag="school life" title="Set primarily in a school environment; social dynamics, studies, and youth culture are central themes.">School Life</span>
+        <span class="genre-chip" data-tag="sci-fi" title="Speculative fiction based on scientific concepts — technology, space exploration, artificial intelligence, or the future.">Sci-fi</span>
+        <span class="genre-chip" data-tag="seinen" title="Targeted at adult men; tends toward more complex plots, darker themes, and mature content than shounen.">Seinen</span>
+        <span class="genre-chip" data-tag="shoujo" title="Targeted at teenage girls; emphasises romance, emotions, and interpersonal relationships.">Shoujo</span>
+        <span class="genre-chip" data-tag="shoujo ai" title="Features romantic or emotional relationships between female characters, without explicit content.">Shoujo Ai</span>
+        <span class="genre-chip" data-tag="shounen" title="Targeted at teenage boys; emphasises action, friendship, and self-improvement through challenges.">Shounen</span>
+        <span class="genre-chip" data-tag="shounen ai" title="Features romantic or emotional relationships between male characters, without explicit content.">Shounen Ai</span>
+        <span class="genre-chip" data-tag="slice of life" title="Depicts everyday, ordinary experiences with little or no dramatic plot; focuses on the mundane and personal.">Slice of Life</span>
+        <span class="genre-chip" data-tag="smut" title="Contains explicit sexual content as a significant part of the story.">Smut</span>
+        <span class="genre-chip" data-tag="sports" title="Centred on athletic competition; follows characters training, competing, and overcoming rivals.">Sports</span>
+        <span class="genre-chip" data-tag="supernatural" title="Involves entities or phenomena beyond the natural world — ghosts, demons, divine beings, or unexplained powers.">Supernatural</span>
+        <span class="genre-chip" data-tag="tragedy" title="Ends in significant loss, death, or failure; explores themes of fate and the cost of human flaws.">Tragedy</span>
+        <span class="genre-chip" data-tag="wuxia" title="Chinese martial arts fiction set in ancient China; heroes wielding exceptional combat skills uphold honour and justice.">Wuxia</span>
+        <span class="genre-chip" data-tag="xianxia" title="Chinese fantasy blending Taoist philosophy and mythology; protagonists cultivate qi to achieve immortality and godhood.">Xianxia</span>
+        <span class="genre-chip" data-tag="xuanhuan" title="Chinese fantasy drawing on Eastern mythology but set in entirely fictional worlds, often with cultivation and system mechanics.">Xuanhuan</span>
+        <span class="genre-chip" data-tag="yaoi" title="Romantic or sexual relationships between male characters, typically written by and for women.">Yaoi</span>
+        <span class="genre-chip" data-tag="yuri" title="Romantic or sexual relationships between female characters.">Yuri</span>
+      </div>
+    </div>
+  </div>
+</details>
+
+<details class="filters options-section" id="options-section" open>
+  <summary>Options</summary>
+
+  <div class="options-group">
+    <div class="options-group-label">Scoring</div>
+    <div class="option-row">
+      <span>Extension ratings</span>
+      <label class="nuf-toggle">
+        <input type="checkbox" id="rec-toggle">
+        <span class="nuf-toggle-slider"></span>
+      </label>
+    </div>
+    <div class="option-row">
+      <span>Show reasoning</span>
+      <label class="nuf-toggle">
+        <input type="checkbox" id="show-reasoning-toggle">
+        <span class="nuf-toggle-slider"></span>
+      </label>
+    </div>
+    <div class="option-row">
+      <span>Hide below extension rating</span>
+      <select id="score-threshold">
+        <option value="0">Off</option>
+        <option value="3">3/10+</option>
+        <option value="4">4/10+</option>
+        <option value="5">5/10+</option>
+        <option value="6">6/10+</option>
+        <option value="7">7/10+</option>
+        <option value="8">8/10+</option>
+      </select>
+    </div>
+    <div class="option-row">
+      <span>Minimum Novel Updates rating</span>
+      <select id="min-rating">
+        <option value="0">Off</option>
+        <!-- 2.0+ … 4.9+ in 0.1 steps, added by popup.js -->
+      </select>
+    </div>
+  </div>
+
+  <div class="options-group">
+    <div class="options-group-label">Display</div>
+    <div class="option-row">
+      <span>Expand synopsis by default</span>
+      <label class="nuf-toggle">
+        <input type="checkbox" id="expand-synopsis-toggle">
+        <span class="nuf-toggle-slider"></span>
+      </label>
+    </div>
+    <div class="option-row">
+      <span>Hide series reviews</span>
+      <label class="nuf-toggle">
+        <input type="checkbox" id="hide-reviews-toggle">
+        <span class="nuf-toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="options-group">
+    <div class="options-group-label">Data</div>
+    <div class="option-row">
+      <span>Prefetch Novel Updates tags</span>
+      <label class="nuf-toggle">
+        <input type="checkbox" id="prefetch-tags-toggle">
+        <span class="nuf-toggle-slider"></span>
+      </label>
+    </div>
+    <div class="nuf-tag-progress" id="tag-progress" style="display:none">
+      <div class="nuf-tag-progress-bar">
+        <div class="nuf-tag-progress-fill" id="tag-progress-fill"></div>
+      </div>
+      <div class="nuf-tag-progress-label" id="tag-progress-label"></div>
+    </div>
+  </div>
+</details>
+
+<div class="footer">
+  <button class="manage-btn" id="manage-btn" title="Open the full-tab List Manager">Manage lists</button>
+  <div class="bulk">
+    <button class="bulk-btn reload" id="reload-btn" title="Reload the current tab">Reload <span class="reload-icon">↺</span></button>
+    <button class="bulk-btn" id="queue-btn" title="See every request waiting to load from Novel Updates">Queue</button>
+    <button class="bulk-btn" id="export-btn" title="Download everything as a JSON file and copy it to the clipboard">Export</button>
+    <button class="bulk-btn imp" id="import-toggle" title="Restore lists and settings from an exported JSON file">Import</button>
+  </div>
+  <div class="import-panel" id="import-panel">
+    <textarea id="import-text" placeholder='Paste an export here, or choose a file' aria-label="Exported JSON"></textarea>
+    <div class="import-actions">
+      <button class="do-import" id="do-import">Import</button>
+      <button id="import-file-btn">Choose file…</button>
+      <button id="cancel-import">Cancel</button>
+    </div>
+    <input type="file" id="import-file" accept=".json,application/json" hidden>
+  </div>
+  <a class="support-link" id="support-link" href="https://ko-fi.com/gaossian0496" target="_blank" rel="noopener" title="Buy me a coffee on Ko-fi">Like it? Support on Ko-fi ☕</a>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Novel Updates Filter — List Manager</title>
+<link rel="stylesheet" href="ui.css">
+<style>
+  body { min-height: 100vh; }
+
+  /* Header extras: bucket counts and the action buttons */
+  .header-stats { display: flex; gap: 14px; font-size: 12px; color: var(--header-muted); flex-wrap: wrap; }
+  .header-stats strong { color: #fff; }
+  .header-stats .dot { margin-right: 5px; }
+  .header-actions button {
+    font-size: 12px; padding: 5px 12px; border-radius: 4px;
+    border: 1px solid var(--header-control-line); background: var(--header-control); color: #fff;
+  }
+  .header-actions button:hover:not(:disabled) { background: var(--header-control-line); }
+  .header-actions button.primary { background: var(--primary); border-color: var(--primary); }
+  .header-actions button.primary:hover { background: var(--primary-hover); }
+
+  /* ── Import panel ── */
+  .import-area {
+    max-width: 1600px; margin: 12px auto 0; padding: 0 20px; display: none;
+  }
+  .import-area.open { display: flex; gap: 8px; align-items: flex-start; }
+  .import-area textarea {
+    flex: 1; height: 72px; font-size: 11px; font-family: monospace;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 6px; resize: vertical;
+  }
+  .import-actions { display: flex; flex-direction: column; gap: 5px; }
+  .import-area button {
+    font-size: 12px; padding: 5px 12px; border-radius: 4px;
+    border: 1px solid var(--line); background: var(--surface);
+  }
+  .import-area .do-import { background: #2b6cb0; color: #fff; border-color: #2b6cb0; }
+
+  /* ── Columns ── */
+  .layout {
+    max-width: 1600px; margin: 0 auto; padding: 16px 20px 24px;
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;
+  }
+  @media (max-width: 1199px) { .layout { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 699px)  { .layout { grid-template-columns: minmax(0, 1fr); padding: 12px; } }
+
+  .col {
+    --accent: var(--muted); --accent-soft: var(--line-soft); --accent-line: var(--line);
+    background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--accent);
+    border-radius: 6px; overflow: hidden;
+    display: flex; flex-direction: column;
+    height: calc(100vh - 96px); min-height: 360px;
+  }
+  @media (max-width: 1199px) { .col { height: 70vh; } }
+  #col-read { --accent: var(--read); --accent-soft: var(--read-soft); --accent-line: var(--read-line); }
+  #col-nf   { --accent: var(--nf);   --accent-soft: var(--nf-soft);   --accent-line: var(--nf-line); }
+  #col-ni   { --accent: var(--ni);   --accent-soft: var(--ni-soft);   --accent-line: var(--ni-line); }
+  #col-tr   { --accent: var(--tr);   --accent-soft: var(--tr-soft);   --accent-line: var(--tr-line); }
+
+  .col-head { padding: 10px 12px 8px; display: flex; align-items: center; gap: 8px; }
+  .col-title { font-size: 15px; font-weight: 700; color: var(--accent); }
+  .col-count {
+    font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 9px;
+    background: var(--accent-soft); color: var(--accent);
+  }
+  .col-head-actions { margin-left: auto; display: flex; gap: 2px; }
+  .col-head-actions button {
+    font-size: 11px; padding: 3px 7px; border-radius: 4px;
+    border: 1px solid transparent; background: none; color: var(--muted);
+  }
+  .col-head-actions button:hover:not(:disabled) { background: var(--line-soft); color: var(--text); }
+  .col-head-actions button.danger:hover:not(:disabled) { background: var(--danger-soft); color: var(--danger); }
+
+  .col-search { padding: 0 12px 8px; border-bottom: 1px solid var(--line-soft); }
+  .col-search input {
+    width: 100%; padding: 5px 8px; font-size: 12px;
+    background: var(--surface-sunk); border: 1px solid var(--line); border-radius: 4px;
+  }
+  .col-search input:focus { border-color: var(--focus); outline: none; }
+
+  /* ── Rows ── */
+  .item-list { flex: 1; overflow-y: auto; }
+  .item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 8px 12px; border-bottom: 1px solid var(--line-soft);
+  }
+  .item:hover, .item:focus-within { background: var(--surface-sunk); }
+  .item:has(input:checked) { background: var(--accent-soft); }
+  .item input[type="checkbox"] { flex-shrink: 0; margin-top: 3px; accent-color: var(--accent); }
+  .item-cover {
+    flex-shrink: 0; width: 30px; height: 42px; border-radius: 3px; object-fit: cover;
+    background: var(--line-soft); display: block;
+  }
+  .item-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .item-top { display: flex; align-items: flex-start; gap: 6px; }
+  .item-info { flex: 1; min-width: 0; }
+  .item-title { display: block; font-weight: 700; overflow-wrap: anywhere; text-decoration: none; }
+  a.item-title:hover { text-decoration: underline; }
+  .item-slug,
+  .item-sub { display: block; font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+  .item-sub .rating { color: var(--nf); font-weight: 700; }
+  .item-loading { display: block; font-size: 11px; color: var(--faint); font-style: italic; }
+  .item-sub.item-failed { color: var(--danger); }
+
+  .item-actions { display: flex; gap: 3px; flex-wrap: wrap; align-items: center; }
+  .item-actions-label { font-size: 11px; color: var(--faint); margin-right: 2px; }
+  .item-btn {
+    font-size: 11px; padding: 1px 6px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+  }
+  /* Keep long lists calm: move buttons stay grey until their row is hovered or
+     focused, then take their bucket colour. Touch screens always show colour. */
+  .item:hover .item-btn.move-read, .item:focus-within .item-btn.move-read { color: var(--read); border-color: var(--read-line); }
+  .item:hover .item-btn.move-nf,   .item:focus-within .item-btn.move-nf   { color: var(--nf);   border-color: var(--nf-line); }
+  .item:hover .item-btn.move-ni,   .item:focus-within .item-btn.move-ni   { color: var(--ni);   border-color: var(--ni-line); }
+  .item:hover .item-btn.move-tr,   .item:focus-within .item-btn.move-tr   { color: var(--tr);   border-color: var(--tr-line); }
+  @media (hover: none), (max-width: 699px) {
+    .item-btn.move-read { color: var(--read); border-color: var(--read-line); }
+    .item-btn.move-nf   { color: var(--nf);   border-color: var(--nf-line); }
+    .item-btn.move-ni   { color: var(--ni);   border-color: var(--ni-line); }
+    .item-btn.move-tr   { color: var(--tr);   border-color: var(--tr-line); }
+  }
+  @media (min-width: 700px) {
+    .item-actions-label { display: none; }
+  }
+  .item-btn.move-read:hover { background: var(--read-soft); }
+  .item-btn.move-nf:hover   { background: var(--nf-soft); }
+  .item-btn.move-ni:hover   { background: var(--ni-soft); }
+  .item-btn.move-tr:hover   { background: var(--tr-soft); }
+  .item-btn.del {
+    flex-shrink: 0; border: none; background: none; color: var(--faint);
+    font-size: 16px; line-height: 1; padding: 0 4px; border-radius: 4px;
+  }
+  .item-btn.del:hover { color: var(--danger); background: var(--danger-soft); }
+
+  .empty { padding: 32px 16px; text-align: center; color: var(--muted); font-size: 12px; }
+  .empty .empty-hint { display: block; margin-top: 4px; color: var(--faint); font-size: 11px; }
+
+  /* ── Bulk bar ── */
+  .bulk-bar {
+    padding: 8px 12px; border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 5px;   /* same height in every column */
+    background: var(--surface-sunk); font-size: 12px;
+  }
+  .bulk-bar .sel-info { grid-column: 1 / -1; color: var(--muted); font-size: 11px; }
+  .bulk-bar button {
+    font-size: 11px; padding: 3px 6px; border-radius: 4px;
+    border: 1px solid var(--line); background: var(--surface);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .bulk-bar button:hover:not(:disabled) { background: var(--line-soft); }
+  .bulk-bar button.danger { color: var(--danger); }
+  .bulk-bar button.danger:hover:not(:disabled) { background: var(--danger-soft); }
+
+  /* ── Undo toast ── */
+  .undo-toast {
+    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+    background: var(--header); color: #fff; font-size: 12px;
+    padding: 10px 14px; border-radius: 6px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    display: none; align-items: center; gap: 14px; z-index: 10;
+  }
+  .undo-toast.visible { display: flex; }
+  .undo-toast button {
+    background: none; border: none; color: #90cdf4; font-weight: 700; text-decoration: underline;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .undo-toast.visible { animation: undo-in 0.15s ease-out; }
+    @keyframes undo-in { from { opacity: 0; transform: translate(-50%, 6px); } }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="brand">Novel Updates <span>Filter</span> — List Manager</div>
+  <div class="header-stats">
+    <span><i class="dot" style="background:#6ee7b7"></i>Read <strong id="stat-read">0</strong></span>
+    <span><i class="dot" style="background:#fcd34d"></i>Not Finished <strong id="stat-nf">0</strong></span>
+    <span><i class="dot" style="background:#fca5a5"></i>Not Interested <strong id="stat-ni">0</strong></span>
+    <span><i class="dot" style="background:#d8b4fe"></i>To Read <strong id="stat-tr">0</strong></span>
+  </div>
+  <div class="header-actions">
+    <span class="note">Changes save automatically</span>
+    <select id="sort-select" title="Order of novels in every list" aria-label="Sort lists">
+      <option value="newest">Recently added first</option>
+      <option value="oldest">Oldest added first</option>
+      <option value="title">Title A–Z</option>
+    </select>
+    <button class="primary" id="export-btn" title="Download everything as a JSON file and copy it to the clipboard">Export all</button>
+    <button id="import-toggle" title="Restore lists and settings from an exported JSON file">Import JSON</button>
+    <button id="queue-btn" title="See every request waiting to load from Novel Updates">Request queue</button>
+  </div>
+</header>
+
+<div class="import-area" id="import-area">
+  <textarea id="import-text" placeholder='Paste an export here, or choose a file — {"version":2,"read":[...]}' aria-label="Exported JSON"></textarea>
+  <div class="import-actions">
+    <button class="do-import" id="do-import">Import</button>
+    <button id="import-file-btn">Choose file…</button>
+    <button id="cancel-import">Cancel</button>
+  </div>
+  <input type="file" id="import-file" accept=".json,application/json" hidden>
+</div>
+
+<main class="layout">
+  <section class="col" id="col-read" aria-label="Read">
+    <div class="col-head">
+      <h2 class="col-title read">Read</h2>
+      <span class="col-count" id="cnt-read">0</span>
+      <div class="col-head-actions">
+        <button id="sel-all-read">Select all</button>
+        <button class="danger" id="clear-read" title="Remove every novel from Read">Clear list</button>
+      </div>
+    </div>
+    <div class="col-search"><input type="search" id="search-read" placeholder="Search Read…" aria-label="Search Read"></div>
+    <div class="item-list" id="list-read"></div>
+    <div class="bulk-bar">
+      <span class="sel-info"><span id="sel-cnt-read">0</span> selected</span>
+      <button id="bulk-move-read-nf" title="Move selected to Not Finished">Not Finished</button>
+      <button id="bulk-move-read-ni" title="Move selected to Not Interested">Not Interested</button>
+      <button id="bulk-move-read-tr" title="Move selected to To Read">To Read</button>
+      <button class="danger" id="bulk-del-read" title="Remove selected from Read">Remove</button>
+    </div>
+  </section>
+
+  <section class="col" id="col-nf" aria-label="Not Finished">
+    <div class="col-head">
+      <h2 class="col-title nf">Not Finished</h2>
+      <span class="col-count" id="cnt-nf">0</span>
+      <div class="col-head-actions">
+        <button id="sel-all-nf">Select all</button>
+        <button class="danger" id="clear-nf" title="Remove every novel from Not Finished">Clear list</button>
+      </div>
+    </div>
+    <div class="col-search"><input type="search" id="search-nf" placeholder="Search Not Finished…" aria-label="Search Not Finished"></div>
+    <div class="item-list" id="list-nf"></div>
+    <div class="bulk-bar">
+      <span class="sel-info"><span id="sel-cnt-nf">0</span> selected</span>
+      <button id="bulk-move-nf-read" title="Move selected to Read">Read</button>
+      <button id="bulk-move-nf-ni" title="Move selected to Not Interested">Not Interested</button>
+      <button id="bulk-move-nf-tr" title="Move selected to To Read">To Read</button>
+      <button class="danger" id="bulk-del-nf" title="Remove selected from Not Finished">Remove</button>
+    </div>
+  </section>
+
+  <section class="col" id="col-ni" aria-label="Not Interested">
+    <div class="col-head">
+      <h2 class="col-title ni">Not Interested</h2>
+      <span class="col-count" id="cnt-ni">0</span>
+      <div class="col-head-actions">
+        <button id="sel-all-ni">Select all</button>
+        <button class="danger" id="clear-ni" title="Remove every novel from Not Interested">Clear list</button>
+      </div>
+    </div>
+    <div class="col-search"><input type="search" id="search-ni" placeholder="Search Not Interested…" aria-label="Search Not Interested"></div>
+    <div class="item-list" id="list-ni"></div>
+    <div class="bulk-bar">
+      <span class="sel-info"><span id="sel-cnt-ni">0</span> selected</span>
+      <button id="bulk-move-ni-read" title="Move selected to Read">Read</button>
+      <button id="bulk-move-ni-nf" title="Move selected to Not Finished">Not Finished</button>
+      <button id="bulk-move-ni-tr" title="Move selected to To Read">To Read</button>
+      <button class="danger" id="bulk-del-ni" title="Remove selected from Not Interested">Remove</button>
+    </div>
+  </section>
+
+  <section class="col" id="col-tr" aria-label="To Read">
+    <div class="col-head">
+      <h2 class="col-title tr">To Read</h2>
+      <span class="col-count" id="cnt-tr">0</span>
+      <div class="col-head-actions">
+        <button id="sel-all-tr">Select all</button>
+        <button class="danger" id="clear-tr" title="Remove every novel from To Read">Clear list</button>
+      </div>
+    </div>
+    <div class="col-search"><input type="search" id="search-tr" placeholder="Search To Read…" aria-label="Search To Read"></div>
+    <div class="item-list" id="list-tr"></div>
+    <div class="bulk-bar">
+      <span class="sel-info"><span id="sel-cnt-tr">0</span> selected</span>
+      <button id="bulk-move-tr-read" title="Move selected to Read">Read</button>
+      <button id="bulk-move-tr-nf" title="Move selected to Not Finished">Not Finished</button>
+      <button id="bulk-move-tr-ni" title="Move selected to Not Interested">Not Interested</button>
+      <button class="danger" id="bulk-del-tr" title="Remove selected from To Read">Remove</button>
+    </div>
+  </section>
+</main>
+
+<div class="undo-toast" id="undo-toast" role="status" aria-live="polite">
+  <span id="undo-msg"></span>
+  <button id="undo-btn">Undo</button>
+</div>
+
+<script src="content/request-queue.js"></script>
+<script src="manager.js"></script>
+</body>
+</html>

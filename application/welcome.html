@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Novel Updates Filter — Welcome</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="ui.css">
+<style>
+  body { font-size: 14px; min-height: 100vh; display: flex; flex-direction: column; }
+
+  .container {
+    width: 100%; max-width: 720px; margin: 0 auto; padding: 32px 24px;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+  h1 { font-size: 24px; }
+  h2 { font-size: 16px; }
+  p  { line-height: 1.55; color: var(--muted); }
+  p a { color: var(--primary); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+    padding: 18px 22px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .card.pin { border-left: 6px solid #f6e05e; }
+
+  ol { padding-left: 22px; line-height: 1.7; }
+  ol li { margin-bottom: 2px; }
+
+  .pin-illustration {
+    background: var(--surface-sunk); border: 1px dashed var(--line); border-radius: 6px;
+    padding: 14px 18px; font-size: 13px; color: var(--muted);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .pin-illustration .icon {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--header); color: #f6e05e;
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+
+  .features { display: flex; flex-direction: column; }
+  .feature {
+    display: flex; align-items: center; gap: 16px;
+    padding: 12px 0; border-bottom: 1px solid var(--line-soft);
+  }
+  .feature:last-child { border-bottom: none; }
+  .feature-visual {
+    flex-shrink: 0; width: 140px; height: 64px;
+    background: var(--surface-sunk); border: 1px solid var(--line); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .feature-text { flex: 1; min-width: 0; line-height: 1.5; }
+  .feature-text strong { display: block; }
+  .feature-text span { color: var(--muted); }
+  @media (max-width: 600px) {
+    .container { padding: 20px 16px; }
+    .feature { flex-direction: column; align-items: flex-start; }
+    .feature-visual { width: 100%; }
+  }
+
+  .footer { display: flex; justify-content: flex-end; gap: 10px; }
+  #got-it-btn { font-size: 13px; padding: 8px 18px; }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="brand">Novel Updates <span>Filter</span></div>
+</header>
+
+<div class="container">
+
+  <div>
+    <h1>Novel Updates Filter is installed</h1>
+    <p>It sorts, filters and scores the novels on <a href="https://www.novelupdates.com" target="_blank" rel="noopener">novelupdates.com</a> as you browse. Pin its toolbar icon first so the popup is one click away.</p>
+  </div>
+
+  <div class="card pin">
+    <h2>Pin the extension to your toolbar</h2>
+    <ol>
+      <li>Click the <strong>puzzle-piece icon</strong> at the top-right of Chrome.</li>
+      <li>Find <strong>Novel Updates Filter</strong> in the list.</li>
+      <li>Click the <strong>pin icon</strong> next to it so the icon appears in your toolbar.</li>
+    </ol>
+    <div class="pin-illustration">
+      <div class="icon">&#x1F9E9;</div>
+      <span>The puzzle-piece icon (top-right of Chrome) opens the extensions menu. Click the pin next to Novel Updates Filter to keep it visible.</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>What it does</h2>
+    <div class="features">
+
+      <div class="feature">
+        <div class="feature-visual">
+          <svg width="124" height="48" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2"  y="4"  width="58" height="18" rx="9" fill="#d1fae5" stroke="#6ee7b7"/>
+            <text x="31" y="16" font-family="Arial" font-size="8" font-weight="700" fill="#065f46" text-anchor="middle">Read</text>
+            <rect x="64" y="4"  width="58" height="18" rx="9" fill="#fef3c7" stroke="#fcd34d"/>
+            <text x="93" y="16" font-family="Arial" font-size="8" font-weight="700" fill="#92400e" text-anchor="middle">Not Finished</text>
+            <rect x="2"  y="26" width="58" height="18" rx="9" fill="#fee2e2" stroke="#fca5a5"/>
+            <text x="31" y="38" font-family="Arial" font-size="7.5" font-weight="700" fill="#991b1b" text-anchor="middle">Not Interested</text>
+            <rect x="64" y="26" width="58" height="18" rx="9" fill="#f3e8ff" stroke="#d8b4fe"/>
+            <text x="93" y="38" font-family="Arial" font-size="8" font-weight="700" fill="#581c87" text-anchor="middle">To Read</text>
+          </svg>
+        </div>
+        <div class="feature-text"><strong>Buckets</strong><span>Mark any novel Read, Not Finished, Not Interested or To Read from its card. The first three hide it from listings.</span></div>
+      </div>
+
+      <div class="feature">
+        <div class="feature-visual">
+          <svg width="124" height="48" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2"  y="16" width="24" height="16" rx="8" fill="#edf2f7" stroke="#cbd5e0"/>
+            <text x="14" y="27" font-family="Arial" font-size="9" fill="#2d3748" text-anchor="middle">EN</text>
+            <rect x="30" y="16" width="24" height="16" rx="8" fill="#fee2e2" stroke="#fca5a5"/>
+            <text x="42" y="27" font-family="Arial" font-size="9" fill="#991b1b" text-anchor="middle">KR</text>
+            <line x1="32" y1="24" x2="52" y2="24" stroke="#991b1b" stroke-width="1.5"/>
+            <rect x="58" y="16" width="44" height="16" rx="8" fill="#fee2e2" stroke="#fca5a5"/>
+            <text x="80" y="27" font-family="Arial" font-size="9" fill="#991b1b" text-anchor="middle">Harem</text>
+            <line x1="60" y1="24" x2="100" y2="24" stroke="#991b1b" stroke-width="1.5"/>
+            <rect x="106" y="16" width="16" height="16" rx="8" fill="#edf2f7" stroke="#cbd5e0"/>
+          </svg>
+        </div>
+        <div class="feature-text"><strong>Filters</strong><span>Hide whole languages or genres from the popup. Changes apply to open tabs straight away.</span></div>
+      </div>
+
+      <div class="feature">
+        <div class="feature-visual">
+          <svg width="124" height="48" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="6" width="120" height="36" rx="4" fill="#fff" stroke="#e2e8f0"/>
+            <rect x="6" y="10" width="36" height="14" rx="3" fill="hsl(80,55%,93%)" stroke="hsl(80,55%,70%)"/>
+            <text x="24" y="20" font-family="Arial" font-size="9" font-weight="700" fill="hsl(80,60%,30%)" text-anchor="middle">8/10</text>
+            <rect x="46" y="10" width="26" height="12" rx="6" fill="#c6f6d5"/>
+            <text x="59" y="19" font-family="Arial" font-size="8" fill="#276749" text-anchor="middle">Tags</text>
+            <rect x="76" y="10" width="30" height="12" rx="6" fill="#c6f6d5"/>
+            <text x="91" y="19" font-family="Arial" font-size="8" fill="#276749" text-anchor="middle">Genre</text>
+            <rect x="6" y="28" width="112" height="10" rx="2" fill="#f7fafc"/>
+            <line x1="10" y1="33" x2="100" y2="33" stroke="#cbd5e0" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="feature-text"><strong>Recommendation scoring</strong><span>Every card gets a 1–10 score from how closely it matches what you read and rated. Click the score to see why.</span></div>
+      </div>
+
+      <div class="feature">
+        <div class="feature-visual">
+          <svg width="124" height="48" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2"  y="4" width="68" height="40" rx="3" fill="#edf2f7" stroke="#cbd5e0"/>
+            <line x1="6" y1="12" x2="40" y2="12" stroke="#a0aec0" stroke-width="1"/>
+            <line x1="6" y1="20" x2="60" y2="20" stroke="#cbd5e0" stroke-width="1"/>
+            <line x1="6" y1="28" x2="55" y2="28" stroke="#cbd5e0" stroke-width="1"/>
+            <line x1="6" y1="36" x2="50" y2="36" stroke="#cbd5e0" stroke-width="1"/>
+            <rect x="76" y="2" width="46" height="44" rx="4" fill="#f3e8ff" stroke="#d8b4fe"/>
+            <text x="99" y="14" font-family="Arial" font-size="8" font-weight="700" fill="#581c87" text-anchor="middle">To Read</text>
+            <rect x="80" y="18" width="38" height="10" rx="2" fill="#fff" stroke="#d8b4fe"/>
+            <rect x="80" y="32" width="38" height="10" rx="2" fill="#fff" stroke="#d8b4fe"/>
+          </svg>
+        </div>
+        <div class="feature-text"><strong>To Read sidebar</strong><span>A panel on the right of listing pages keeps your To Read novels, with covers and a Start reading button.</span></div>
+      </div>
+
+      <div class="feature">
+        <div class="feature-visual">
+          <svg width="124" height="48" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2"  y="2" width="28" height="44" rx="3" fill="#f7fafc" stroke="#9ae6b4"/>
+            <rect x="2" y="2" width="28" height="4" rx="2" fill="#065f46"/>
+            <line x1="6" y1="18" x2="26" y2="18" stroke="#cbd5e0"/>
+            <line x1="6" y1="26" x2="26" y2="26" stroke="#cbd5e0"/>
+            <line x1="6" y1="34" x2="26" y2="34" stroke="#cbd5e0"/>
+            <rect x="32" y="2" width="28" height="44" rx="3" fill="#f7fafc" stroke="#fcd34d"/>
+            <rect x="32" y="2" width="28" height="4" rx="2" fill="#92400e"/>
+            <line x1="36" y1="18" x2="56" y2="18" stroke="#cbd5e0"/>
+            <line x1="36" y1="26" x2="56" y2="26" stroke="#cbd5e0"/>
+            <rect x="62" y="2" width="28" height="44" rx="3" fill="#f7fafc" stroke="#fca5a5"/>
+            <rect x="62" y="2" width="28" height="4" rx="2" fill="#991b1b"/>
+            <line x1="66" y1="18" x2="86" y2="18" stroke="#cbd5e0"/>
+            <rect x="92" y="2" width="28" height="44" rx="3" fill="#f7fafc" stroke="#d8b4fe"/>
+            <rect x="92" y="2" width="28" height="4" rx="2" fill="#581c87"/>
+            <line x1="96" y1="18" x2="116" y2="18" stroke="#cbd5e0"/>
+            <line x1="96" y1="26" x2="116" y2="26" stroke="#cbd5e0"/>
+          </svg>
+        </div>
+        <div class="feature-text"><strong>Manager</strong><span>A full-tab page to search, move, remove, export and import every list.</span></div>
+      </div>
+
+      <div class="feature">
+        <div class="feature-visual">
+          <svg width="124" height="48" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="2"  width="84" height="10" rx="2" fill="#edf2f7" stroke="#cbd5e0"/>
+            <rect x="20" y="14" width="84" height="10" rx="2" fill="#edf2f7" stroke="#cbd5e0"/>
+            <rect x="20" y="26" width="84" height="10" rx="2" fill="#edf2f7" stroke="#cbd5e0" opacity="0.7"/>
+            <path d="M 62 38 L 62 44 M 58 40 L 62 44 L 66 40" stroke="#2b6cb0" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="feature-text"><strong>Infinite scroll</strong><span>Listings keep loading as you scroll, paced so Novel Updates does not block you. The Request queue page shows what is loading.</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="btn primary" id="got-it-btn">Close this tab</button>
+  </div>
+
+</div>
+
+<!-- Inline scripts are blocked by MV3's default CSP. The click handler lives
+     in welcome.js (loaded as an external src) so it actually executes. -->
+<script src="welcome.js"></script>
+
+</body>
+</html>

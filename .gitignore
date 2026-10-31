@@ -1,0 +1,40 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Test output
+*-actual.png
+test-results/
+playwright-report/
+*.log
+
+# Packaged extension (built for the Chrome Web Store)
+*.zip
+
+# Secrets
+.env
+.env.*
+
+# Claude Code local state
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# Obsidian local workspace state
+wiki/.obsidian/
+
+# Private working files: kept on disk, not in the public repository
+CLAUDE.md
+.claude/
+wiki/
+defects/
+features/
+docs/
+mockups/
+store/
+tests/test_defect_detector_hook.py
+tests/TEST_CATALOGUE.md
+tests/build_catalogue.py
+tests/real_site/
+tests/test_screenshots_real.py

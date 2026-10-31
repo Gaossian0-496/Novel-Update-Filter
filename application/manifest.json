@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Novel Updates Filter",
+  "version": "1.0.0",
+  "description": "Hide read novels, get suggestions based on your interests and keep a To Read list, all while browsing Novel Updates series listings.",
+  "permissions": ["storage", "unlimitedStorage"],
+  "host_permissions": ["*://www.novelupdates.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://www.novelupdates.com/*"],
+      "js": [
+      "content/state.js",
+      "content/utils.js",
+      "content/storage.js",
+      "content/request-queue.js",
+      "content/toast.js",
+      "content/recommend.js",
+      "content/prefetch.js",
+      "content/entries.js",
+      "content/scroll.js",
+      "content/sidebar.js",
+      "content/series.js",
+      "content/storage-listener.js",
+      "content/init.js"
+    ],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

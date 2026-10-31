@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Novel Updates Filter — Request Queue</title>
+<link rel="stylesheet" href="ui.css">
+<style>
+  body { min-height: 100vh; }
+  main { max-width: 880px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* The one prominent element: what the queue is doing right now */
+  .status {
+    --state: var(--ok);
+    background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--state);
+    border-radius: 6px; padding: 16px 18px;
+  }
+  .status[data-state="waiting"] { --state: var(--primary); }
+  .status[data-state="slowed"]  { --state: var(--nf); }
+  .status[data-state="paused"]  { --state: var(--ni); }
+  .status-headline { font-size: 18px; font-weight: 700; color: var(--state); }
+  .status-detail { margin-top: 4px; color: var(--muted); }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px 24px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+  .facts strong { color: var(--text); }
+  .progress { display: inline-flex; align-items: center; gap: 8px; }
+  .progress-bar { display: inline-block; width: 120px; height: 6px; border-radius: 3px; background: var(--line-soft); overflow: hidden; }
+  .progress-fill { display: block; height: 100%; width: 0; background: var(--ok); }
+
+  section { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  section h2 {
+    font-size: 13px; padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .count { font-size: 11px; padding: 1px 7px; border-radius: 9px; background: var(--line-soft); color: var(--muted); }
+  .summary { font-size: 12px; font-weight: 400; color: var(--muted); }
+  .hint { padding: 14px; color: var(--muted); font-size: 12px; }
+
+  .rows { list-style: none; }
+  .row {
+    display: grid; grid-template-columns: 116px minmax(0, 1fr) auto; gap: 12px; align-items: center;
+    padding: 7px 14px; border-bottom: 1px solid var(--line-soft); font-size: 12px;
+  }
+  .row:last-child { border-bottom: none; }
+  .kind {
+    --accent: var(--muted); --accent-soft: var(--line-soft);
+    justify-self: start; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 9px;
+    background: var(--accent-soft); color: var(--accent); white-space: nowrap;
+  }
+  .kind[data-kind="scroll"]   { --accent: var(--primary); --accent-soft: #ebf8ff; }
+  .kind[data-kind="user"]     { --accent: var(--tr); --accent-soft: var(--tr-soft); }
+  .kind[data-kind="prefetch"] { --accent: var(--read); --accent-soft: var(--read-soft); }
+  .kind[data-kind="cover"]    { --accent: var(--tr); --accent-soft: var(--tr-soft); }
+  .kind[data-kind="manager"]  { --accent: var(--nf); --accent-soft: var(--nf-soft); }
+  @media (prefers-color-scheme: dark) { .kind[data-kind="scroll"] { --accent-soft: #1a365d; } }
+  .path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); text-decoration: none; }
+  a.path:hover { text-decoration: underline; }
+  .when { color: var(--muted); white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+  th, td { padding: 6px 14px; text-align: left; border-bottom: 1px solid var(--line-soft); }
+  th { font-weight: 700; color: var(--muted); font-size: 11px; }
+  td { font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: none; }
+  .col-time { width: 104px; white-space: nowrap; } .col-kind { width: 130px; } .col-wait { width: 76px; } .col-result { width: 120px; }
+  .result { font-weight: 700; }
+  .result[data-outcome="ok"] { color: var(--ok); }
+  .result[data-outcome="blocked"], .result[data-outcome="challenge"] { color: var(--ni); }
+  .result[data-outcome="error"], .result[data-outcome="gone"] { color: var(--nf); }
+
+  @media (max-width: 640px) {
+    main { padding: 12px; }
+    .row { grid-template-columns: minmax(0, 1fr) auto; }
+    .row .kind { grid-column: 1 / -1; }
+    /* Recent requests become stacked cards: type and result, then page, then time and wait */
+    thead { display: none; }
+    table, tbody, tr, td { display: block; }
+    tr { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; padding: 8px 14px; border-bottom: 1px solid var(--line-soft); }
+    tr:last-child { border-bottom: none; }
+    td { padding: 0; border: none; }
+    td:nth-child(1) { order: 4; color: var(--muted); }
+    td:nth-child(2) { order: 1; }
+    td:nth-child(3) { order: 3; grid-column: 1 / -1; min-width: 0; }
+    td:nth-child(4) { order: 5; color: var(--muted); text-align: right; }
+    td:nth-child(5) { order: 2; text-align: right; }
+    td:nth-child(3) .path { display: block; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="brand">Novel Updates <span>Filter</span> — Request Queue</div>
+  <div class="header-actions">
+    <span class="note">Every request to Novel Updates from every tab and the manager runs through this one queue</span>
+    <button class="header-btn" id="open-manager" title="Open the List Manager">Manager</button>
+  </div>
+</header>
+
+<main>
+  <div class="status" id="status" data-state="idle" role="status" aria-live="polite">
+    <div class="status-headline" id="status-headline">Connecting…</div>
+    <div class="status-detail" id="status-detail"></div>
+    <div class="facts">
+      <span>Gap between requests: <strong id="fact-gap">—</strong></span>
+      <span class="progress" id="fact-prefetch" hidden>Tag lookups: <strong id="fact-prefetch-text"></strong>
+        <span class="progress-bar"><span class="progress-fill" id="fact-prefetch-fill"></span></span></span>
+    </div>
+  </div>
+
+  <section aria-labelledby="h-now">
+    <h2 id="h-now">Loading now</h2>
+    <ul class="rows" id="in-flight"></ul>
+  </section>
+
+  <section aria-labelledby="h-waiting">
+    <h2 id="h-waiting">Waiting <span class="count" id="waiting-count">0</span> <span class="summary" id="waiting-summary"></span></h2>
+    <ul class="rows" id="waiting"></ul>
+  </section>
+
+  <section aria-labelledby="h-recent">
+    <h2 id="h-recent">Recent requests <span class="count" id="recent-count">0</span></h2>
+    <table>
+      <thead><tr>
+        <th class="col-time">Time</th><th class="col-kind">Type</th><th>Page</th>
+        <th class="col-wait">Waited</th><th class="col-result">Result</th>
+      </tr></thead>
+      <tbody id="recent"></tbody>
+    </table>
+    <div class="hint" id="recent-empty">Nothing has loaded since the browser started. Open a Novel Updates listing to see requests here.</div>
+  </section>
+</main>
+
+<script src="queue.js"></script>
+</body>
+</html>
