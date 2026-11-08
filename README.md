@@ -37,6 +37,10 @@ python -m pytest tests/
 
 The suite opens a real browser window and takes several minutes.
 
+## Privacy
+
+Everything stays in your browser. Nothing is sent to me or anyone else. See the [privacy policy](PRIVACY.md).
+
 ## License
 
 MIT, see `LICENSE`.
