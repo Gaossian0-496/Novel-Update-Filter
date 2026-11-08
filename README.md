@@ -16,7 +16,7 @@ Support me: [buy me a coffee on Ko-fi](https://ko-fi.com/gaossian0496).
 
 ## Install
 
-From the Chrome Web Store (coming soon), or load it yourself:
+[Install it from the Chrome Web Store](https://chromewebstore.google.com/detail/kagoagfhppmfcbgobbgboccagiiifpib), or load it yourself:
 
 1. Download or clone this repository.
 2. Open `chrome://extensions` and turn on **Developer mode**.
